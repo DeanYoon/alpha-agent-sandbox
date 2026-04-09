@@ -235,39 +235,45 @@ export default function BacktestPage() {
 
           {/* Results Display */}
           <div className="lg:col-span-2 space-y-4 md:space-y-6">
-                <div className="grid grid-cols-1 xs:grid-cols-3 sm:grid-cols-6 gap-3 md:gap-4">
+                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+                  {/* Portfolio Group */}
                   <StatCard 
-                    label="Final Balance" 
+                    label="Portfolio Final Balance" 
                     value={`$${Math.round(currentSummary.finalBalance).toLocaleString()}`} 
-                    icon={<Wallet className="text-black dark:text-white" size={20} />}
+                    icon={<Wallet className="text-blue-600 dark:text-blue-400" size={20} />}
+                    isPortfolio
                   />
                   <StatCard 
-                    label="Total Return" 
+                    label="Portfolio Total Return" 
                     value={`${(currentSummary.totalReturn * 100).toFixed(2)}%`} 
-                    icon={<TrendingUp className="text-blue-600" size={20} />}
+                    icon={<TrendingUp className="text-blue-600 dark:text-blue-400" size={20} />}
+                    isPortfolio
                   />
                   <StatCard 
-                    label="Max Drawdown" 
+                    label="Portfolio Max Drawdown" 
                     value={`${(currentSummary.maxDrawdown * 100).toFixed(2)}%`} 
-                    icon={<AlertTriangle className="text-red-600" size={20} />}
-                    isNegative
+                    icon={<AlertTriangle className="text-slate-900 dark:text-slate-100" size={20} />}
+                    isPortfolio
+                  />
+
+                  {/* Benchmark Group */}
+                  <StatCard 
+                    label="Benchmark Final Balance" 
+                    value={`$${Math.round(currentSummary.benchmarkFinalBalance || 100000).toLocaleString()}`} 
+                    icon={<Wallet className="text-red-600" size={20} />}
+                    isBenchmark
                   />
                   <StatCard 
-                    label="Alpha" 
-                    value={`${(alpha * 100).toFixed(2)}%`} 
-                    icon={<TrendingUp className={alpha >= 0 ? "text-green-600" : "text-red-600"} size={20} />}
-                  />
-                  <StatCard 
-                    label="Benchmark Return" 
+                    label="Benchmark Total Return" 
                     value={`${((currentSummary.benchmarkReturn || 0) * 100).toFixed(2)}%`} 
                     icon={<TrendingUp className="text-red-600" size={20} />}
                     isBenchmark
                   />
                   <StatCard 
-                    label="Benchmark Final" 
-                    value={`$${Math.round(currentSummary.benchmarkFinalBalance || 100000).toLocaleString()}`} 
-                    icon={<Wallet className="text-red-600" size={20} />}
-                    isBenchmark
+                    label="Alpha" 
+                    value={`${(alpha * 100).toFixed(2)}%`} 
+                    icon={<TrendingUp className={alpha >= 0 ? "text-green-600" : "text-red-600"} size={20} />}
+                    isAlpha
                   />
                 </div>
 
@@ -341,14 +347,29 @@ export default function BacktestPage() {
   );
 }
 
-function StatCard({ label, value, icon, isNegative = false, isBenchmark = false }: any) {
+function StatCard({ label, value, icon, isPortfolio = false, isBenchmark = false, isAlpha = false }: any) {
+  let borderColor = 'border-slate-200 dark:border-slate-800';
+  let textColor = 'text-slate-900 dark:text-slate-100';
+
+  if (isPortfolio) {
+    borderColor = 'border-blue-200 dark:border-blue-900/40';
+    textColor = 'text-blue-600 dark:text-blue-400';
+  } else if (isBenchmark) {
+    borderColor = 'border-red-200 dark:border-red-900/40';
+    textColor = 'text-red-600 dark:text-red-400';
+  } else if (isAlpha) {
+    // Special case for Alpha - can use default or highlight high contrast
+    borderColor = 'border-slate-400 dark:border-slate-500';
+    textColor = 'text-slate-900 dark:text-slate-100';
+  }
+
   return (
-    <div className={`rounded-2xl border bg-white p-5 shadow-sm dark:bg-slate-900 ${isBenchmark ? 'border-red-200 dark:border-red-900/40' : 'border-slate-200 dark:border-slate-800'}`}>
+    <div className={`rounded-2xl border bg-white p-5 shadow-sm dark:bg-slate-900 ${borderColor}`}>
       <div className="mb-3 flex items-center justify-between">
-        <span className="text-xs font-medium uppercase text-slate-500 tracking-wider font-semibold dark:text-slate-400">{label}</span>
+        <span className="text-[10px] font-bold uppercase text-slate-500 tracking-wider dark:text-slate-400">{label}</span>
         {icon}
       </div>
-      <div className={`text-2xl font-bold ${isNegative ? 'text-red-600' : isBenchmark ? 'text-red-600' : 'text-slate-900 dark:text-slate-100'}`}>
+      <div className={`text-2xl font-black ${textColor}`}>
         {value}
       </div>
     </div>
