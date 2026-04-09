@@ -16,6 +16,8 @@ export interface BacktestResult {
     totalReturn: number;
     maxDrawdown: number;
     sharpeRatio: number;
+    benchmarkReturn?: number;
+    benchmarkFinalBalance?: number;
   };
   history: {
     date: string;

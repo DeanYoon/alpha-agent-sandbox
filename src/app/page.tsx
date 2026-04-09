@@ -42,10 +42,13 @@ export default function BacktestPage() {
   const initialSummary = {
     finalBalance: 100000,
     totalReturn: 0,
-    maxDrawdown: 0
+    maxDrawdown: 0,
+    benchmarkReturn: 0,
+    benchmarkFinalBalance: 100000,
   };
 
   const currentSummary = result?.summary || initialSummary;
+  const alpha = currentSummary.totalReturn - (currentSummary.benchmarkReturn || 0);
   const historyData = result?.history || [];
 
   useEffect(() => {
@@ -232,7 +235,7 @@ export default function BacktestPage() {
 
           {/* Results Display */}
           <div className="lg:col-span-2 space-y-4 md:space-y-6">
-                <div className="grid grid-cols-1 xs:grid-cols-3 gap-3 md:gap-4">
+                <div className="grid grid-cols-1 xs:grid-cols-3 sm:grid-cols-6 gap-3 md:gap-4">
                   <StatCard 
                     label="Final Balance" 
                     value={`$${Math.round(currentSummary.finalBalance).toLocaleString()}`} 
@@ -248,6 +251,23 @@ export default function BacktestPage() {
                     value={`${(currentSummary.maxDrawdown * 100).toFixed(2)}%`} 
                     icon={<AlertTriangle className="text-red-600" size={20} />}
                     isNegative
+                  />
+                  <StatCard 
+                    label="Alpha" 
+                    value={`${(alpha * 100).toFixed(2)}%`} 
+                    icon={<TrendingUp className={alpha >= 0 ? "text-green-600" : "text-red-600"} size={20} />}
+                  />
+                  <StatCard 
+                    label="Benchmark Return" 
+                    value={`${((currentSummary.benchmarkReturn || 0) * 100).toFixed(2)}%`} 
+                    icon={<TrendingUp className="text-red-600" size={20} />}
+                    isBenchmark
+                  />
+                  <StatCard 
+                    label="Benchmark Final" 
+                    value={`$${Math.round(currentSummary.benchmarkFinalBalance || 100000).toLocaleString()}`} 
+                    icon={<Wallet className="text-red-600" size={20} />}
+                    isBenchmark
                   />
                 </div>
 
@@ -321,14 +341,14 @@ export default function BacktestPage() {
   );
 }
 
-function StatCard({ label, value, icon, isNegative = false }: any) {
+function StatCard({ label, value, icon, isNegative = false, isBenchmark = false }: any) {
   return (
-    <div className="rounded-2xl border border-slate-200 bg-white p-5 shadow-sm dark:border-slate-800 dark:bg-slate-900">
+    <div className={`rounded-2xl border bg-white p-5 shadow-sm dark:bg-slate-900 ${isBenchmark ? 'border-red-200 dark:border-red-900/40' : 'border-slate-200 dark:border-slate-800'}`}>
       <div className="mb-3 flex items-center justify-between">
         <span className="text-xs font-medium uppercase text-slate-500 tracking-wider font-semibold dark:text-slate-400">{label}</span>
         {icon}
       </div>
-      <div className={`text-2xl font-bold ${isNegative ? 'text-red-600' : 'text-slate-900 dark:text-slate-100'}`}>
+      <div className={`text-2xl font-bold ${isNegative ? 'text-red-600' : isBenchmark ? 'text-red-600' : 'text-slate-900 dark:text-slate-100'}`}>
         {value}
       </div>
     </div>

@@ -84,12 +84,21 @@ export async function runBacktestSimulation(config: BacktestRequest): Promise<Ba
   const finalBalance = history[history.length - 1].balance;
   const totalReturn = (finalBalance - seedMoney) / seedMoney;
 
+  let benchmarkReturn = 0;
+  let benchmarkFinalBalance = seedMoney;
+  if (benchmarkTicker && history.length > 0) {
+    benchmarkFinalBalance = history[history.length - 1].benchmarkBalance || seedMoney;
+    benchmarkReturn = (benchmarkFinalBalance - seedMoney) / seedMoney;
+  }
+
   return {
     summary: {
       finalBalance,
       totalReturn,
       maxDrawdown,
       sharpeRatio: 0, // Placeholder
+      benchmarkReturn,
+      benchmarkFinalBalance,
     },
     history,
   };
