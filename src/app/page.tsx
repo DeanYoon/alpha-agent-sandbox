@@ -25,8 +25,9 @@ export default function BacktestPage() {
     { ticker: 'SPY', weight: 20 },
   ]);
   const [benchmarkTicker, setBenchmarkTicker] = useState('SPY');
-  const [startDate, setStartDate] = useState('2023-01-01');
+  const [startDate, setStartDate] = useState('');
   const [endDate, setEndDate] = useState('');
+  const [period, setSelectedPeriod] = useState('1y');
 
   const setPeriod = (years: number) => {
     const end = new Date();
@@ -35,10 +36,11 @@ export default function BacktestPage() {
     
     setStartDate(start.toISOString().split('T')[0]);
     setEndDate(end.toISOString().split('T')[0]);
+    setSelectedPeriod(`${years}y`);
   };
 
   useEffect(() => {
-    setEndDate(new Date().toISOString().split('T')[0]);
+    setPeriod(1);
   }, []);
   const [loading, setLoading] = useState(false);
   const [result, setResult] = useState<any>(null);
@@ -96,6 +98,14 @@ export default function BacktestPage() {
     const tickerList = assets.map(a => a.ticker);
     const weightList = assets.map(a => a.weight / 100);
 
+    // Dynamic period calculation for API
+    let apiPeriod = period;
+    const startYear = new Date(startDate).getFullYear();
+    const currentYear = new Date().getFullYear();
+    if (currentYear - startYear > 10) {
+      apiPeriod = 'max';
+    }
+
     try {
       const response = await fetch('/api/backtest', {
         method: 'POST',
@@ -107,7 +117,8 @@ export default function BacktestPage() {
           endDate,
           rebalanceInterval: 'monthly',
           seedMoney: 100000,
-          benchmarkTicker
+          benchmarkTicker,
+          period: apiPeriod
         }),
       });
       const data = await response.json();
@@ -198,13 +209,16 @@ export default function BacktestPage() {
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                   <div className="min-w-0">
                     <label className="mb-1 block text-[10px] md:text-xs font-medium uppercase text-slate-500 dark:text-slate-400">Start</label>
-                    <input 
-                      type="date" 
-                      className="w-full rounded-lg border border-slate-200 bg-white px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-black dark:border-slate-700 dark:bg-slate-800 dark:focus:ring-blue-500"
-                      value={startDate}
-                      onChange={(e) => setStartDate(e.target.value)}
-                    />
-                  </div>
+                      <input 
+                        type="date" 
+                        className="w-full rounded-lg border border-slate-200 bg-white px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-black dark:border-slate-700 dark:bg-slate-800 dark:focus:ring-blue-500"
+                        value={startDate}
+                        onChange={(e) => {
+                          setStartDate(e.target.value);
+                          setSelectedPeriod(''); // Clear active button when custom date is set
+                        }}
+                      />
+</div>
                   <div className="min-w-0">
                     <label className="mb-1 block text-[10px] md:text-xs font-medium uppercase text-slate-500 dark:text-slate-400">End</label>
                     <input 
@@ -221,7 +235,11 @@ export default function BacktestPage() {
                     <button
                       key={y}
                       onClick={() => setPeriod(y)}
-                      className="rounded-lg border border-slate-200 py-1.5 text-xs font-medium hover:bg-slate-50 dark:border-slate-700 dark:hover:bg-slate-800 transition-colors"
+                      className={`rounded-lg border py-1.5 text-xs font-medium transition-colors ${
+                        period === `${y}y` 
+                        ? 'border-black bg-black text-white dark:border-white dark:bg-white dark:text-black' 
+                        : 'border-slate-200 hover:bg-slate-50 dark:border-slate-700 dark:hover:bg-slate-800'
+                      }`}
                     >
                       {y}Y
                     </button>
@@ -313,10 +331,10 @@ export default function BacktestPage() {
                         name="Portfolio"
                         type="monotone" 
                         dataKey="balance" 
-                        stroke="#2563eb" 
+                        stroke={darkMode ? "#3b82f6" : "#000000"} 
                         strokeWidth={2.5} 
                         dot={false} 
-                        activeDot={{ r: 4, strokeWidth: 0 }}
+                        activeDot={{ r: 4, strokeWidth: 0, fill: darkMode ? "#3b82f6" : "#000000" }}
                       />
                       {historyData[0]?.benchmarkBalance && (
                         <Line 

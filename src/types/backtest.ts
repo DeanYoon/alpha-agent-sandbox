@@ -6,6 +6,7 @@ export interface BacktestRequest {
   rebalanceInterval: 'monthly' | 'quarterly' | 'yearly' | 'none';
   seedMoney: number;
   benchmarkTicker?: string;
+  period?: string;
 }
 
 export interface BacktestResult {

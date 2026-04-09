@@ -12,26 +12,33 @@ import { BacktestRequest, BacktestResult, PriceData } from '@/types/backtest';
  */
 
 export async function runBacktestSimulation(config: BacktestRequest): Promise<BacktestResult> {
-  const { tickers, allocations, startDate, endDate, rebalanceInterval, seedMoney, benchmarkTicker } = config;
+  const { tickers, allocations, startDate, endDate, rebalanceInterval, seedMoney, benchmarkTicker, period } = config;
 
   // Placeholder: In a real app, you'd call an external API or your internal price service.
   // For this sandbox, let's simulate fetching data.
-  const activeTickers = benchmarkTicker ? [...tickers, benchmarkTicker] : tickers;
-  const prices = await fetchPrices(activeTickers, startDate, endDate);
+  const activeTickers = benchmarkTicker ? Array.from(new Set([...tickers, benchmarkTicker])) : tickers;
+  const prices = await fetchPrices(activeTickers, startDate, endDate, period);
   
-  // Verify all requested tickers are present in the response
+  // Verify all requested tickers are present in the response and have same length
+  const dates = Object.values(prices)[0]?.map(p => p.date) || [];
+  if (dates.length === 0) {
+    throw new Error(`Insufficient data for the selected range: ${startDate} to ${endDate}`);
+  }
+
   activeTickers.forEach(ticker => {
-    if (!prices[ticker] || prices[ticker].length === 0) {
+    if (!prices[ticker] || prices[ticker].length !== dates.length) {
       throw new Error(`Insufficient data for ticker: ${ticker}. Please adjust the date range or check the symbol.`);
     }
   });
 
-  const dates = Object.values(prices)[0].map(p => p.date);
   let currentBalance = seedMoney;
   let shares = tickers.map((ticker, i) => (seedMoney * allocations[i]) / prices[ticker][0].price);
   
-  // Benchmark shares
-  let benchmarkShares = benchmarkTicker ? seedMoney / prices[benchmarkTicker][0].price : 0;
+  // Benchmark initial shares calculation
+  let benchmarkShares = 0;
+  if (benchmarkTicker && prices[benchmarkTicker]) {
+    benchmarkShares = seedMoney / prices[benchmarkTicker][0].price;
+  }
 
   const history: { date: string, balance: number, benchmarkBalance?: number }[] = [];
   let maxBalance = seedMoney;
@@ -89,31 +96,33 @@ export async function runBacktestSimulation(config: BacktestRequest): Promise<Ba
 }
 
 // Fetch real price data from Yahoo Finance API
-async function fetchPrices(tickers: string[], start: string, end: string): Promise<PriceData> {
+async function fetchPrices(tickers: string[], start: string, end: string, period?: string): Promise<PriceData> {
   const symbols = Array.from(new Set(tickers)).join(',');
-  const apiUrl = `https://yahoo-finance-api-seven.vercel.app/history?symbols=${symbols}&period=max`;
+  const fetchPeriod = period || 'max';
+  const apiUrl = `https://yahoo-finance-api-seven.vercel.app/history?symbols=${symbols}&period=${fetchPeriod}`;
   
   try {
     const response = await fetch(apiUrl);
     const data = await response.json();
     
-    // The data is expected to be an object with tickers as keys, each containing an array of {date, price}
-    // We need to filter based on start/end dates
     const filteredPrices: PriceData = {};
     const startDateObj = new Date(start);
     const endDateObj = new Date(end);
 
     Object.keys(data).forEach(ticker => {
       const tickerData = data[ticker];
-      if (!Array.isArray(tickerData)) {
-        console.warn(`Data for ticker ${ticker} is not an array:`, tickerData);
-        return;
-      }
+      if (!Array.isArray(tickerData)) return;
 
       filteredPrices[ticker] = tickerData
         .filter((item: { date: string, price: number }) => {
           const itemDate = new Date(item.date);
-          return itemDate >= startDateObj && itemDate <= endDateObj;
+          // Set hours to 0 to compare dates strictly by day
+          itemDate.setHours(0, 0, 0, 0);
+          const s = new Date(startDateObj);
+          s.setHours(0, 0, 0, 0);
+          const e = new Date(endDateObj);
+          e.setHours(0, 0, 0, 0);
+          return itemDate >= s && itemDate <= e;
         })
         .sort((a: any, b: any) => new Date(a.date).getTime() - new Date(b.date).getTime());
     });
