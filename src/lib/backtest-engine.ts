@@ -12,17 +12,21 @@ import { BacktestRequest, BacktestResult, PriceData } from '@/types/backtest';
  */
 
 export async function runBacktestSimulation(config: BacktestRequest): Promise<BacktestResult> {
-  const { tickers, allocations, startDate, endDate, rebalanceInterval, seedMoney } = config;
+  const { tickers, allocations, startDate, endDate, rebalanceInterval, seedMoney, benchmarkTicker } = config;
 
   // Placeholder: In a real app, you'd call an external API or your internal price service.
   // For this sandbox, let's simulate fetching data.
-  const prices = await fetchPrices(tickers, startDate, endDate);
+  const activeTickers = benchmarkTicker ? [...tickers, benchmarkTicker] : tickers;
+  const prices = await fetchPrices(activeTickers, startDate, endDate);
   
   const dates = Object.values(prices)[0].map(p => p.date);
   let currentBalance = seedMoney;
   let shares = tickers.map((ticker, i) => (seedMoney * allocations[i]) / prices[ticker][0].price);
   
-  const history: { date: string, balance: number }[] = [];
+  // Benchmark shares
+  let benchmarkShares = benchmarkTicker ? seedMoney / prices[benchmarkTicker][0].price : 0;
+
+  const history: { date: string, balance: number, benchmarkBalance?: number }[] = [];
   let maxBalance = seedMoney;
   let maxDrawdown = 0;
 
@@ -34,8 +38,17 @@ export async function runBacktestSimulation(config: BacktestRequest): Promise<Ba
       totalValue += shares[i] * prices[tickers[i]][d].price;
     }
 
+    const dayEntry: { date: string, balance: number, benchmarkBalance?: number } = { 
+      date, 
+      balance: totalValue 
+    };
+
+    if (benchmarkTicker) {
+      dayEntry.benchmarkBalance = benchmarkShares * prices[benchmarkTicker][d].price;
+    }
+
     // Daily Balance
-    history.push({ date, balance: totalValue });
+    history.push(dayEntry);
 
     // Drawdown Calculation
     if (totalValue > maxBalance) maxBalance = totalValue;
