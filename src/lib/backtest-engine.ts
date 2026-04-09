@@ -108,13 +108,28 @@ async function fetchPrices(tickers: string[], period?: string): Promise<PriceDat
     const filteredPrices: PriceData = {};
 
     Object.keys(data).forEach(ticker => {
-      const tickerData = data[ticker];
+      let tickerData = data[ticker];
+
+      // Handle Object format: { "YYYY-MM-DD": { close: 123.45 } }
+      if (tickerData && !Array.isArray(tickerData) && typeof tickerData === 'object') {
+        console.log(`[API] Converting object data to array for ticker ${ticker}`);
+        tickerData = Object.entries(tickerData).map(([date, values]: [string, any]) => ({
+          date,
+          price: values.close || values.price || 0
+        }));
+      }
+
       if (!Array.isArray(tickerData)) {
         console.warn(`[API] Invalid data format for ticker ${ticker}:`, tickerData);
         return;
       }
 
       filteredPrices[ticker] = tickerData
+        .filter((item: any) => item.date && (item.price !== undefined || item.close !== undefined))
+        .map((item: any) => ({
+          date: item.date,
+          price: item.price ?? item.close
+        }))
         .sort((a: any, b: any) => new Date(a.date).getTime() - new Date(b.date).getTime());
     });
 
