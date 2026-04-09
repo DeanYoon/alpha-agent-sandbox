@@ -102,10 +102,15 @@ export default function BacktestPage() {
         }),
       });
       const data = await response.json();
+      
+      if (!response.ok) {
+        throw new Error(data.error || 'Failed to run simulation');
+      }
+      
       setResult(data);
-    } catch (e) {
+    } catch (e: any) {
       console.error(e);
-      setError('An error occurred during simulation.');
+      setError(e.message || 'An error occurred during simulation.');
     } finally {
       setLoading(false);
     }
@@ -244,10 +249,10 @@ export default function BacktestPage() {
                   />
                 </div>
 
-                <div className="h-[350px] md:h-96 w-full rounded-2xl border border-slate-200 bg-white p-4 md:p-6 shadow-sm dark:border-slate-800 dark:bg-slate-900">
+                <div className="min-h-[400px] w-full rounded-2xl border border-slate-200 bg-white p-4 md:p-6 shadow-sm dark:border-slate-800 dark:bg-slate-900">
                   <h3 className="mb-4 text-[10px] md:text-sm font-medium text-slate-500 uppercase dark:text-slate-400">Growth of Portfolio ($100,000)</h3>
-                  <div className="h-full w-full -ml-4 md:ml-0">
-                  <ResponsiveContainer width="100%" height="90%">
+                  <div className="h-[300px] md:h-[350px] w-full -ml-4 md:ml-0">
+                  <ResponsiveContainer width="100%" height="100%">
                     <LineChart data={historyData} margin={{ top: 5, right: 20, left: 0, bottom: 5 }}>
                       <CartesianGrid strokeDasharray="3 3" vertical={false} stroke={darkMode ? "#334155" : "#f1f5f9"} />
                       <XAxis 

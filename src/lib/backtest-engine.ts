@@ -19,6 +19,13 @@ export async function runBacktestSimulation(config: BacktestRequest): Promise<Ba
   const activeTickers = benchmarkTicker ? [...tickers, benchmarkTicker] : tickers;
   const prices = await fetchPrices(activeTickers, startDate, endDate);
   
+  // Verify all requested tickers are present in the response
+  activeTickers.forEach(ticker => {
+    if (!prices[ticker] || prices[ticker].length === 0) {
+      throw new Error(`Insufficient data for ticker: ${ticker}. Please adjust the date range or check the symbol.`);
+    }
+  });
+
   const dates = Object.values(prices)[0].map(p => p.date);
   let currentBalance = seedMoney;
   let shares = tickers.map((ticker, i) => (seedMoney * allocations[i]) / prices[ticker][0].price);
@@ -97,7 +104,13 @@ async function fetchPrices(tickers: string[], start: string, end: string): Promi
     const endDateObj = new Date(end);
 
     Object.keys(data).forEach(ticker => {
-      filteredPrices[ticker] = data[ticker]
+      const tickerData = data[ticker];
+      if (!Array.isArray(tickerData)) {
+        console.warn(`Data for ticker ${ticker} is not an array:`, tickerData);
+        return;
+      }
+
+      filteredPrices[ticker] = tickerData
         .filter((item: { date: string, price: number }) => {
           const itemDate = new Date(item.date);
           return itemDate >= startDateObj && itemDate <= endDateObj;
@@ -106,9 +119,10 @@ async function fetchPrices(tickers: string[], start: string, end: string): Promi
     });
 
     // Ensure all tickers have the same dates (find common intersection)
-    const commonDatesSet = new Set<string>();
     const tickerNames = Object.keys(filteredPrices);
-    if (tickerNames.length === 0) return {};
+    if (tickerNames.length === 0) {
+      throw new Error("No valid price data found for the selected tickers and date range.");
+    }
 
     // Use the first ticker's dates as a starting point
     filteredPrices[tickerNames[0]].forEach(item => commonDatesSet.add(item.date));
