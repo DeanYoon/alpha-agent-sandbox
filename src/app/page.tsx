@@ -26,7 +26,11 @@ export default function BacktestPage() {
   ]);
   const [benchmarkTicker, setBenchmarkTicker] = useState('SPY');
   const [startDate, setStartDate] = useState('2023-01-01');
-  const [endDate, setEndDate] = useState('2023-12-31');
+  const [endDate, setEndDate] = useState('');
+
+  useEffect(() => {
+    setEndDate(new Date().toISOString().split('T')[0]);
+  }, []);
   const [loading, setLoading] = useState(false);
   const [result, setResult] = useState<any>(null);
   const [error, setError] = useState<string | null>(null);
@@ -108,51 +112,51 @@ export default function BacktestPage() {
   };
 
   return (
-    <main className="min-h-screen bg-slate-50 p-8 text-slate-800 transition-colors dark:bg-slate-950 dark:text-slate-200">
+    <main className="min-h-screen bg-slate-50 p-4 md:p-8 text-slate-800 transition-colors dark:bg-slate-950 dark:text-slate-200">
       <div className="mx-auto max-w-5xl">
-        <header className="mb-8 flex items-center justify-between">
-          <h1 className="text-3xl font-bold tracking-tight">Alpha-Agent Backtester</h1>
-          <div className="flex items-center gap-4">
+        <header className="mb-6 md:mb-8 flex items-center justify-between">
+          <h1 className="text-xl md:text-3xl font-bold tracking-tight">Alpha-Agent Backtester</h1>
+          <div className="flex items-center gap-2 md:gap-4">
             <button 
               onClick={toggleDarkMode}
               className="rounded-full p-2 hover:bg-slate-200 dark:hover:bg-slate-800 transition-colors"
             >
-              {darkMode ? <Sun size={20} /> : <Moon size={20} />}
+              {darkMode ? <Sun size={18} /> : <Moon size={18} />}
             </button>
-            <div className="flex items-center gap-2 text-sm text-slate-500 dark:text-slate-400">
-              <span className="h-2 w-2 rounded-full bg-green-500"></span> Live Engine
+            <div className="flex items-center gap-2 text-xs md:text-sm text-slate-500 dark:text-slate-400">
+              <span className="h-2 w-2 rounded-full bg-green-500"></span> <span className="hidden xs:inline">Live Engine</span>
             </div>
           </div>
         </header>
 
-        <div className="grid gap-8 lg:grid-cols-3">
+        <div className="flex flex-col gap-6 md:grid lg:grid-cols-3 md:gap-8">
           {/* Controls */}
-          <section className="rounded-2xl border border-slate-200 bg-white p-6 shadow-sm dark:border-slate-800 dark:bg-slate-900">
-            <h2 className="mb-4 font-semibold">Strategy Settings</h2>
+          <section className="rounded-2xl border border-slate-200 bg-white p-4 md:p-6 shadow-sm dark:border-slate-800 dark:bg-slate-900">
+            <h2 className="mb-4 font-semibold text-sm md:text-base">Strategy Settings</h2>
             
             <div className="space-y-4">
               <div>
-                <label className="mb-2 block text-xs font-medium uppercase text-slate-500 dark:text-slate-400">Assets & Weights</label>
+                <label className="mb-2 block text-[10px] md:text-xs font-medium uppercase text-slate-500 dark:text-slate-400">Assets & Weights</label>
                 <div className="space-y-2">
                   {assets.map((asset, index) => (
                     <div key={index} className="flex gap-2">
                       <input 
                         type="text" 
                         placeholder="Ticker"
-                        className="w-24 rounded-lg border border-slate-200 bg-white px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 dark:border-slate-700 dark:bg-slate-800"
+                        className="flex-1 min-w-0 md:w-24 rounded-lg border border-slate-200 bg-white px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-black dark:border-slate-700 dark:bg-slate-800 dark:focus:ring-blue-500"
                         value={asset.ticker}
                         onChange={(e) => updateAsset(index, 'ticker', e.target.value.toUpperCase())}
                       />
                       <input 
                         type="number" 
                         placeholder="%"
-                        className="w-20 rounded-lg border border-slate-200 bg-white px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 dark:border-slate-700 dark:bg-slate-800"
+                        className="w-16 md:w-20 rounded-lg border border-slate-200 bg-white px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-black dark:border-slate-700 dark:bg-slate-800 dark:focus:ring-blue-500"
                         value={asset.weight || ''}
                         onChange={(e) => updateAsset(index, 'weight', parseFloat(e.target.value) || 0)}
                       />
                       <button 
                         onClick={() => removeAsset(index)}
-                        className="text-slate-400 hover:text-red-500 transition-colors"
+                        className="text-slate-400 hover:text-red-500 transition-colors p-1"
                       >
                         <Trash2 size={18} />
                       </button>
@@ -168,10 +172,10 @@ export default function BacktestPage() {
               </div>
 
               <div>
-                <label className="mb-1 block text-xs font-medium uppercase text-slate-500 dark:text-slate-400">Benchmark Ticker</label>
+                <label className="mb-1 block text-[10px] md:text-xs font-medium uppercase text-slate-500 dark:text-slate-400">Benchmark Ticker</label>
                 <input 
                   type="text" 
-                  className="w-full rounded-lg border border-slate-200 bg-white px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 dark:border-slate-700 dark:bg-slate-800"
+                  className="w-full rounded-lg border border-slate-200 bg-white px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-black dark:border-slate-700 dark:bg-slate-800 dark:focus:ring-blue-500"
                   value={benchmarkTicker}
                   onChange={(e) => setBenchmarkTicker(e.target.value.toUpperCase())}
                 />
@@ -179,19 +183,19 @@ export default function BacktestPage() {
 
               <div className="grid grid-cols-2 gap-2">
                 <div>
-                  <label className="mb-1 block text-xs font-medium uppercase text-slate-500 dark:text-slate-400">Start</label>
+                  <label className="mb-1 block text-[10px] md:text-xs font-medium uppercase text-slate-500 dark:text-slate-400">Start</label>
                   <input 
                     type="date" 
-                    className="w-full rounded-lg border border-slate-200 bg-white px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 dark:border-slate-700 dark:bg-slate-800"
+                    className="w-full rounded-lg border border-slate-200 bg-white px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-black dark:border-slate-700 dark:bg-slate-800 dark:focus:ring-blue-500"
                     value={startDate}
                     onChange={(e) => setStartDate(e.target.value)}
                   />
                 </div>
                 <div>
-                  <label className="mb-1 block text-xs font-medium uppercase text-slate-500 dark:text-slate-400">End</label>
+                  <label className="mb-1 block text-[10px] md:text-xs font-medium uppercase text-slate-500 dark:text-slate-400">End</label>
                   <input 
                     type="date" 
-                    className="w-full rounded-lg border border-slate-200 bg-white px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 dark:border-slate-700 dark:bg-slate-800"
+                    className="w-full rounded-lg border border-slate-200 bg-white px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-black dark:border-slate-700 dark:bg-slate-800 dark:focus:ring-blue-500"
                     value={endDate}
                     onChange={(e) => setEndDate(e.target.value)}
                   />
@@ -208,7 +212,7 @@ export default function BacktestPage() {
               <button 
                 onClick={handleRun}
                 disabled={loading}
-                className="flex w-full items-center justify-center gap-2 rounded-lg bg-slate-900 py-3 text-sm font-semibold text-white transition-all hover:bg-slate-800 disabled:opacity-50 dark:bg-blue-600 dark:hover:bg-blue-700"
+                className="flex w-full items-center justify-center gap-2 rounded-lg bg-black py-3 text-sm font-semibold text-white transition-all hover:bg-slate-800 disabled:opacity-50 dark:bg-white dark:text-black dark:hover:bg-slate-200"
               >
                 {loading ? 'Simulating...' : (
                   <>
@@ -220,73 +224,78 @@ export default function BacktestPage() {
           </section>
 
           {/* Results Display */}
-          <div className="lg:col-span-2 space-y-6">
-                <div className="grid grid-cols-3 gap-4">
+          <div className="lg:col-span-2 space-y-4 md:space-y-6">
+                <div className="grid grid-cols-1 xs:grid-cols-3 gap-3 md:gap-4">
                   <StatCard 
                     label="Final Balance" 
                     value={`$${Math.round(currentSummary.finalBalance).toLocaleString()}`} 
-                    icon={<Wallet className="text-blue-500" size={20} />}
+                    icon={<Wallet className="text-black dark:text-white" size={20} />}
                   />
                   <StatCard 
                     label="Total Return" 
                     value={`${(currentSummary.totalReturn * 100).toFixed(2)}%`} 
-                    icon={<TrendingUp className="text-green-500" size={20} />}
+                    icon={<TrendingUp className="text-blue-600" size={20} />}
                   />
                   <StatCard 
                     label="Max Drawdown" 
                     value={`${(currentSummary.maxDrawdown * 100).toFixed(2)}%`} 
-                    icon={<AlertTriangle className="text-orange-500" size={20} />}
+                    icon={<AlertTriangle className="text-red-600" size={20} />}
                     isNegative
                   />
                 </div>
 
-                <div className="h-80 w-full rounded-2xl border border-slate-200 bg-white p-6 shadow-sm dark:border-slate-800 dark:bg-slate-900">
-                  <h3 className="mb-4 text-sm font-medium text-slate-500 uppercase dark:text-slate-400">Growth of Portfolio ($100,000)</h3>
-                  <ResponsiveContainer width="100%" height="100%">
-                    <LineChart data={historyData}>
+                <div className="h-[350px] md:h-96 w-full rounded-2xl border border-slate-200 bg-white p-4 md:p-6 shadow-sm dark:border-slate-800 dark:bg-slate-900">
+                  <h3 className="mb-4 text-[10px] md:text-sm font-medium text-slate-500 uppercase dark:text-slate-400">Growth of Portfolio ($100,000)</h3>
+                  <div className="h-full w-full -ml-4 md:ml-0">
+                  <ResponsiveContainer width="100%" height="90%">
+                    <LineChart data={historyData} margin={{ top: 5, right: 20, left: 0, bottom: 5 }}>
                       <CartesianGrid strokeDasharray="3 3" vertical={false} stroke={darkMode ? "#334155" : "#f1f5f9"} />
                       <XAxis 
                         dataKey="date" 
                         hide 
                       />
                       <YAxis 
-                        tick={{fontSize: 12, fill: darkMode ? '#94a3b8' : '#64748b'}} 
+                        tick={{fontSize: 10, fill: darkMode ? '#94a3b8' : '#64748b'}} 
                         axisLine={false}
                         tickLine={false}
-                        tickFormatter={(val) => `$${val/1000}k`}
+                        tickFormatter={(val) => `$${Math.round(val/1000)}k`}
                       />
                       <Tooltip 
                         labelClassName="text-slate-900 dark:text-slate-100 font-bold"
+                        formatter={(val: any) => [`$${Math.round(val).toLocaleString()}`, "Balance"]}
                         contentStyle={{
                           borderRadius: '12px', 
                           border: 'none', 
                           boxShadow: '0 10px 15px -3px rgb(0 0 0 / 0.1)',
                           backgroundColor: darkMode ? '#1e293b' : '#ffffff',
-                          color: darkMode ? '#f1f5f9' : '#0f172a'
+                          color: darkMode ? '#f1f5f9' : '#0f172a',
+                          fontSize: '12px'
                         }}
                       />
-                      <Legend />
+                      <Legend verticalAlign="top" height={36} wrapperStyle={{ fontSize: '12px' }}/>
                       <Line 
                         name="Portfolio"
                         type="monotone" 
                         dataKey="balance" 
-                        stroke={darkMode ? "#60a5fa" : "#2563eb"} 
+                        stroke="#2563eb" 
                         strokeWidth={2.5} 
                         dot={false} 
+                        activeDot={{ r: 4, strokeWidth: 0 }}
                       />
                       {historyData[0]?.benchmarkBalance && (
                         <Line 
                           name={`Benchmark (${benchmarkTicker})`}
                           type="monotone" 
                           dataKey="benchmarkBalance" 
-                          stroke={darkMode ? "#f59e0b" : "#94a3b8"} 
+                          stroke="#dc2626" 
                           strokeWidth={2} 
-                          strokeDasharray="5 5"
                           dot={false} 
+                          strokeDasharray="5 5"
                         />
                       )}
                     </LineChart>
                   </ResponsiveContainer>
+                  </div>
                 </div>
           </div>
         </div>

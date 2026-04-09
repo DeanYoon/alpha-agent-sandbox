@@ -81,28 +81,58 @@ export async function runBacktestSimulation(config: BacktestRequest): Promise<Ba
   };
 }
 
-// Mock price fetching - replace with Yahoo Finance or Alpha Vantage
+// Fetch real price data from Yahoo Finance API
 async function fetchPrices(tickers: string[], start: string, end: string): Promise<PriceData> {
-  // Simulating daily returns with some randomness for the sandbox logic
-  const mockPrices: PriceData = {};
-  const startDate = new Date(start);
-  const endDate = new Date(end);
-  const days: string[] = [];
+  const symbols = Array.from(new Set(tickers)).join(',');
+  const apiUrl = `https://yahoo-finance-api-seven.vercel.app/history?symbols=${symbols}&period=max`;
   
-  for (let d = new Date(startDate); d <= endDate; d.setDate(d.getDate() + 1)) {
-    if (d.getDay() !== 0 && d.getDay() !== 6) { // Weekdays
-      days.push(d.toISOString().split('T')[0]);
-    }
-  }
+  try {
+    const response = await fetch(apiUrl);
+    const data = await response.json();
+    
+    // The data is expected to be an object with tickers as keys, each containing an array of {date, price}
+    // We need to filter based on start/end dates
+    const filteredPrices: PriceData = {};
+    const startDateObj = new Date(start);
+    const endDateObj = new Date(end);
 
-  tickers.forEach(ticker => {
-    let currentPrice = 100 + Math.random() * 50;
-    mockPrices[ticker] = days.map(date => {
-      const change = 1 + (Math.random() - 0.48) * 0.02; // Slight upward bias
-      currentPrice *= change;
-      return { date, price: currentPrice };
+    Object.keys(data).forEach(ticker => {
+      filteredPrices[ticker] = data[ticker]
+        .filter((item: { date: string, price: number }) => {
+          const itemDate = new Date(item.date);
+          return itemDate >= startDateObj && itemDate <= endDateObj;
+        })
+        .sort((a: any, b: any) => new Date(a.date).getTime() - new Date(b.date).getTime());
     });
-  });
 
-  return mockPrices;
+    // Ensure all tickers have the same dates (find common intersection)
+    const commonDatesSet = new Set<string>();
+    const tickerNames = Object.keys(filteredPrices);
+    if (tickerNames.length === 0) return {};
+
+    // Use the first ticker's dates as a starting point
+    filteredPrices[tickerNames[0]].forEach(item => commonDatesSet.add(item.date));
+
+    // Intersect with other tickers
+    for (let i = 1; i < tickerNames.length; i++) {
+      const currentTickerDates = new Set(filteredPrices[tickerNames[i]].map(item => item.date));
+      for (const date of commonDatesSet) {
+        if (!currentTickerDates.has(date)) {
+          commonDatesSet.delete(date);
+        }
+      }
+    }
+
+    const commonDates = Array.from(commonDatesSet).sort();
+    const finalPrices: PriceData = {};
+
+    tickerNames.forEach(ticker => {
+      finalPrices[ticker] = filteredPrices[ticker].filter(item => commonDatesSet.has(item.date));
+    });
+
+    return finalPrices;
+  } catch (error) {
+    console.error("Error fetching prices:", error);
+    throw new Error("Failed to fetch market data.");
+  }
 }
