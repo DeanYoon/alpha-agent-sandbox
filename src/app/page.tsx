@@ -32,6 +32,15 @@ export default function BacktestPage() {
   const [error, setError] = useState<string | null>(null);
   const [darkMode, setDarkMode] = useState(false);
 
+  const initialSummary = {
+    finalBalance: 100000,
+    totalReturn: 0,
+    maxDrawdown: 0
+  };
+
+  const currentSummary = result?.summary || initialSummary;
+  const historyData = result?.history || [];
+
   useEffect(() => {
     if (darkMode) {
       document.documentElement.classList.add('dark');
@@ -212,22 +221,20 @@ export default function BacktestPage() {
 
           {/* Results Display */}
           <div className="lg:col-span-2 space-y-6">
-            {result ? (
-              <>
                 <div className="grid grid-cols-3 gap-4">
                   <StatCard 
                     label="Final Balance" 
-                    value={`$${Math.round(result.summary.finalBalance).toLocaleString()}`} 
+                    value={`$${Math.round(currentSummary.finalBalance).toLocaleString()}`} 
                     icon={<Wallet className="text-blue-500" size={20} />}
                   />
                   <StatCard 
                     label="Total Return" 
-                    value={`${(result.summary.totalReturn * 100).toFixed(2)}%`} 
+                    value={`${(currentSummary.totalReturn * 100).toFixed(2)}%`} 
                     icon={<TrendingUp className="text-green-500" size={20} />}
                   />
                   <StatCard 
                     label="Max Drawdown" 
-                    value={`${(result.summary.maxDrawdown * 100).toFixed(2)}%`} 
+                    value={`${(currentSummary.maxDrawdown * 100).toFixed(2)}%`} 
                     icon={<AlertTriangle className="text-orange-500" size={20} />}
                     isNegative
                   />
@@ -236,14 +243,14 @@ export default function BacktestPage() {
                 <div className="h-80 w-full rounded-2xl border border-slate-200 bg-white p-6 shadow-sm dark:border-slate-800 dark:bg-slate-900">
                   <h3 className="mb-4 text-sm font-medium text-slate-500 uppercase dark:text-slate-400">Growth of Portfolio ($100,000)</h3>
                   <ResponsiveContainer width="100%" height="100%">
-                    <LineChart data={result.history}>
+                    <LineChart data={historyData}>
                       <CartesianGrid strokeDasharray="3 3" vertical={false} stroke={darkMode ? "#334155" : "#f1f5f9"} />
                       <XAxis 
                         dataKey="date" 
                         hide 
                       />
                       <YAxis 
-                        tick={{fontSize: 12, fill: darkMode ? '#64748b' : '#94a3b8'}} 
+                        tick={{fontSize: 12, fill: darkMode ? '#94a3b8' : '#64748b'}} 
                         axisLine={false}
                         tickLine={false}
                         tickFormatter={(val) => `$${val/1000}k`}
@@ -263,16 +270,16 @@ export default function BacktestPage() {
                         name="Portfolio"
                         type="monotone" 
                         dataKey="balance" 
-                        stroke={darkMode ? "#3b82f6" : "#0f172a"} 
-                        strokeWidth={2} 
+                        stroke={darkMode ? "#60a5fa" : "#2563eb"} 
+                        strokeWidth={2.5} 
                         dot={false} 
                       />
-                      {result.history[0]?.benchmarkBalance && (
+                      {historyData[0]?.benchmarkBalance && (
                         <Line 
                           name={`Benchmark (${benchmarkTicker})`}
                           type="monotone" 
                           dataKey="benchmarkBalance" 
-                          stroke="#94a3b8" 
+                          stroke={darkMode ? "#f59e0b" : "#94a3b8"} 
                           strokeWidth={2} 
                           strokeDasharray="5 5"
                           dot={false} 
@@ -281,13 +288,6 @@ export default function BacktestPage() {
                     </LineChart>
                   </ResponsiveContainer>
                 </div>
-              </>
-            ) : (
-              <div className="flex h-full min-h-[400px] flex-col items-center justify-center rounded-2xl border-2 border-dashed border-slate-200 text-slate-400 dark:border-slate-800 dark:text-slate-600">
-                <TrendingUp size={48} className="mb-4 opacity-20" />
-                <p>Enter parameters and run simulation to see results</p>
-              </div>
-            )}
           </div>
         </div>
       </div>
