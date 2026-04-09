@@ -28,6 +28,15 @@ export default function BacktestPage() {
   const [startDate, setStartDate] = useState('2023-01-01');
   const [endDate, setEndDate] = useState('');
 
+  const setPeriod = (years: number) => {
+    const end = new Date();
+    const start = new Date();
+    start.setFullYear(end.getFullYear() - years);
+    
+    setStartDate(start.toISOString().split('T')[0]);
+    setEndDate(end.toISOString().split('T')[0]);
+  };
+
   useEffect(() => {
     setEndDate(new Date().toISOString().split('T')[0]);
   }, []);
@@ -207,6 +216,18 @@ export default function BacktestPage() {
                   </div>
                 </div>
 
+                <div className="grid grid-cols-3 gap-2">
+                  {[1, 5, 10].map((y) => (
+                    <button
+                      key={y}
+                      onClick={() => setPeriod(y)}
+                      className="rounded-lg border border-slate-200 py-1.5 text-xs font-medium hover:bg-slate-50 dark:border-slate-700 dark:hover:bg-slate-800 transition-colors"
+                    >
+                      {y}Y
+                    </button>
+                  ))}
+                </div>
+
               {error && (
                 <div className="flex items-center gap-2 rounded-lg bg-red-50 p-3 text-xs text-red-600 dark:bg-red-900/20 dark:text-red-400">
                   <AlertTriangle size={14} />
@@ -257,7 +278,17 @@ export default function BacktestPage() {
                       <CartesianGrid strokeDasharray="3 3" vertical={false} stroke={darkMode ? "#334155" : "#f1f5f9"} />
                       <XAxis 
                         dataKey="date" 
-                        hide 
+                        tick={{fontSize: 10, fill: darkMode ? '#94a3b8' : '#64748b'}}
+                        tickFormatter={(str) => {
+                          const date = new Date(str);
+                          if (date.getMonth() === 0 && date.getDate() <= 7) {
+                            return date.getFullYear().toString();
+                          }
+                          return "";
+                        }}
+                        interval={0}
+                        axisLine={false}
+                        tickLine={false}
                       />
                       <YAxis 
                         tick={{fontSize: 10, fill: darkMode ? '#94a3b8' : '#64748b'}} 
