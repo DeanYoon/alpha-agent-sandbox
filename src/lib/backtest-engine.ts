@@ -125,6 +125,7 @@ async function fetchPrices(tickers: string[], start: string, end: string): Promi
     }
 
     // Use the first ticker's dates as a starting point
+    const commonDatesSet = new Set<string>();
     filteredPrices[tickerNames[0]].forEach(item => commonDatesSet.add(item.date));
 
     // Intersect with other tickers
