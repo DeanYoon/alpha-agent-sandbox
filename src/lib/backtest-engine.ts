@@ -109,37 +109,46 @@ async function fetchPrices(tickers: string[], period?: string): Promise<PriceDat
 
     Object.keys(data).forEach(ticker => {
       const tickerData = data[ticker];
-      if (!Array.isArray(tickerData)) return;
+      if (!Array.isArray(tickerData)) {
+        console.warn(`[API] Invalid data format for ticker ${ticker}:`, tickerData);
+        return;
+      }
 
       filteredPrices[ticker] = tickerData
         .sort((a: any, b: any) => new Date(a.date).getTime() - new Date(b.date).getTime());
     });
 
-    // Ensure all tickers have the same dates (find common intersection)
     const tickerNames = Object.keys(filteredPrices);
     if (tickerNames.length === 0) {
+      console.error("[API] No valid tickers in response. Data received:", JSON.stringify(data).substring(0, 500));
       throw new Error("No price data found for the selected tickers. Please try different periods or symbols.");
     }
 
-    // Use the first ticker's dates as a starting point
-    const commonDatesSet = new Set<string>();
-    filteredPrices[tickerNames[0]].forEach(item => commonDatesSet.add(item.date));
-
-    // Intersect with other tickers
-    for (let i = 1; i < tickerNames.length; i++) {
-      const currentTickerDates = new Set(filteredPrices[tickerNames[i]].map(item => item.date));
-      for (const date of commonDatesSet) {
-        if (!currentTickerDates.has(date)) {
-          commonDatesSet.delete(date);
-        }
-      }
-    }
-
-    const commonDates = Array.from(commonDatesSet).sort();
-    const finalPrices: PriceData = {};
-
+    // UNION: Collect all unique dates across all tickers
+    const allDatesSet = new Set<string>();
     tickerNames.forEach(ticker => {
-      finalPrices[ticker] = filteredPrices[ticker].filter(item => commonDatesSet.has(item.date));
+      filteredPrices[ticker].forEach(item => allDatesSet.add(item.date));
+    });
+    
+    const sortedDates = Array.from(allDatesSet).sort((a, b) => new Date(a).getTime() - new Date(b).getTime());
+
+    // ALIGNMENT: Fill missing dates using the last known price forward
+    const finalPrices: PriceData = {};
+    tickerNames.forEach(ticker => {
+      const originalData = filteredPrices[ticker];
+      const alignedData: { date: string, price: number }[] = [];
+      let lastPrice = originalData.length > 0 ? originalData[0].price : 0;
+      
+      const priceMap = new Map(originalData.map(item => [item.date, item.price]));
+
+      sortedDates.forEach(date => {
+        if (priceMap.has(date)) {
+          lastPrice = priceMap.get(date)!;
+        }
+        alignedData.push({ date, price: lastPrice });
+      });
+
+      finalPrices[ticker] = alignedData;
     });
 
     return finalPrices;
