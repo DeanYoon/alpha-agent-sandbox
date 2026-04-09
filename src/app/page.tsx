@@ -25,17 +25,9 @@ export default function BacktestPage() {
     { ticker: 'SPY', weight: 20 },
   ]);
   const [benchmarkTicker, setBenchmarkTicker] = useState('SPY');
-  const [startDate, setStartDate] = useState('');
-  const [endDate, setEndDate] = useState('');
   const [period, setSelectedPeriod] = useState('1y');
 
   const setPeriod = (years: number) => {
-    const end = new Date();
-    const start = new Date();
-    start.setFullYear(end.getFullYear() - years);
-    
-    setStartDate(start.toISOString().split('T')[0]);
-    setEndDate(end.toISOString().split('T')[0]);
     setSelectedPeriod(`${years}y`);
   };
 
@@ -100,11 +92,6 @@ export default function BacktestPage() {
 
     // Dynamic period calculation for API
     let apiPeriod = period;
-    const startYear = new Date(startDate).getFullYear();
-    const currentYear = new Date().getFullYear();
-    if (currentYear - startYear > 10) {
-      apiPeriod = 'max';
-    }
 
     try {
       const response = await fetch('/api/backtest', {
@@ -113,8 +100,6 @@ export default function BacktestPage() {
         body: JSON.stringify({
           tickers: tickerList,
           allocations: weightList,
-          startDate,
-          endDate,
           rebalanceInterval: 'monthly',
           seedMoney: 100000,
           benchmarkTicker,
@@ -206,29 +191,7 @@ export default function BacktestPage() {
                 />
               </div>
 
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                  <div className="min-w-0">
-                    <label className="mb-1 block text-[10px] md:text-xs font-medium uppercase text-slate-500 dark:text-slate-400">Start</label>
-                      <input 
-                        type="date" 
-                        className="w-full rounded-lg border border-slate-200 bg-white px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-black dark:border-slate-700 dark:bg-slate-800 dark:focus:ring-blue-500"
-                        value={startDate}
-                        onChange={(e) => {
-                          setStartDate(e.target.value);
-                          setSelectedPeriod(''); // Clear active button when custom date is set
-                        }}
-                      />
-</div>
-                  <div className="min-w-0">
-                    <label className="mb-1 block text-[10px] md:text-xs font-medium uppercase text-slate-500 dark:text-slate-400">End</label>
-                    <input 
-                      type="date" 
-                      className="w-full rounded-lg border border-slate-200 bg-white px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-black dark:border-slate-700 dark:bg-slate-800 dark:focus:ring-blue-500"
-                      value={endDate}
-                      onChange={(e) => setEndDate(e.target.value)}
-                    />
-                  </div>
-                </div>
+
 
                 <div className="grid grid-cols-3 gap-2">
                   {[1, 5, 10].map((y) => (
