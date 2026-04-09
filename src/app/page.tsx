@@ -235,46 +235,60 @@ export default function BacktestPage() {
 
           {/* Results Display */}
           <div className="lg:col-span-2 space-y-4 md:space-y-6">
-                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-                  {/* Portfolio Group */}
-                  <StatCard 
-                    label="Portfolio Final Balance" 
-                    value={`$${Math.round(currentSummary.finalBalance).toLocaleString()}`} 
-                    icon={<Wallet className="text-blue-600 dark:text-blue-400" size={20} />}
-                    isPortfolio
-                  />
-                  <StatCard 
-                    label="Portfolio Total Return" 
-                    value={`${(currentSummary.totalReturn * 100).toFixed(2)}%`} 
-                    icon={<TrendingUp className="text-blue-600 dark:text-blue-400" size={20} />}
-                    isPortfolio
-                  />
-                  <StatCard 
-                    label="Portfolio Max Drawdown" 
-                    value={`${(currentSummary.maxDrawdown * 100).toFixed(2)}%`} 
-                    icon={<AlertTriangle className="text-slate-900 dark:text-slate-100" size={20} />}
-                    isPortfolio
-                  />
+                <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                  {/* Card 1: Final Balance */}
+                  <div className="rounded-2xl border border-slate-200 bg-white p-4 shadow-sm dark:border-slate-800 dark:bg-slate-900">
+                    <div className="mb-2 flex items-center justify-between">
+                      <span className="text-[10px] font-bold uppercase text-slate-500 tracking-wider dark:text-slate-400">Final Balance</span>
+                      <Wallet size={16} className="text-slate-400" />
+                    </div>
+                    <div className="flex flex-col gap-1">
+                      <div className="flex justify-between items-end border-l-2 border-blue-500 pl-2">
+                        <span className="text-[10px] text-blue-600 font-medium">Portfolio</span>
+                        <span className="text-lg font-black text-blue-600">{`$${Math.round(currentSummary.finalBalance).toLocaleString()}`}</span>
+                      </div>
+                      <div className="flex justify-between items-end border-l-2 border-red-500 pl-2">
+                        <span className="text-[10px] text-red-600 font-medium">{benchmarkTicker}</span>
+                        <span className="text-lg font-black text-red-600">{`$${Math.round(currentSummary.benchmarkFinalBalance || 100000).toLocaleString()}`}</span>
+                      </div>
+                    </div>
+                  </div>
 
-                  {/* Benchmark Group */}
-                  <StatCard 
-                    label="Benchmark Final Balance" 
-                    value={`$${Math.round(currentSummary.benchmarkFinalBalance || 100000).toLocaleString()}`} 
-                    icon={<Wallet className="text-red-600" size={20} />}
-                    isBenchmark
-                  />
-                  <StatCard 
-                    label="Benchmark Total Return" 
-                    value={`${((currentSummary.benchmarkReturn || 0) * 100).toFixed(2)}%`} 
-                    icon={<TrendingUp className="text-red-600" size={20} />}
-                    isBenchmark
-                  />
-                  <StatCard 
-                    label="Alpha" 
-                    value={`${(alpha * 100).toFixed(2)}%`} 
-                    icon={<TrendingUp className={alpha >= 0 ? "text-green-600" : "text-red-600"} size={20} />}
-                    isAlpha
-                  />
+                  {/* Card 2: Total Return */}
+                  <div className="rounded-2xl border border-slate-200 bg-white p-4 shadow-sm dark:border-slate-800 dark:bg-slate-900">
+                    <div className="mb-2 flex items-center justify-between">
+                      <span className="text-[10px] font-bold uppercase text-slate-500 tracking-wider dark:text-slate-400">Total Return</span>
+                      <TrendingUp size={16} className="text-slate-400" />
+                    </div>
+                    <div className="flex flex-col gap-1">
+                      <div className="flex justify-between items-end border-l-2 border-blue-500 pl-2">
+                        <span className="text-[10px] text-blue-600 font-medium">Portfolio</span>
+                        <span className="text-lg font-black text-blue-600">{`${(currentSummary.totalReturn * 100).toFixed(2)}%`}</span>
+                      </div>
+                      <div className="flex justify-between items-end border-l-2 border-red-500 pl-2">
+                        <span className="text-[10px] text-red-600 font-medium">{benchmarkTicker}</span>
+                        <span className="text-lg font-black text-red-600">{`${((currentSummary.benchmarkReturn || 0) * 100).toFixed(2)}%`}</span>
+                      </div>
+                    </div>
+                  </div>
+
+                  {/* Card 3: Risk & Alpha */}
+                  <div className="rounded-2xl border border-slate-200 bg-white p-4 shadow-sm dark:border-slate-800 dark:bg-slate-900">
+                    <div className="mb-2 flex items-center justify-between">
+                      <span className="text-[10px] font-bold uppercase text-slate-500 tracking-wider dark:text-slate-400">Performance & Risk</span>
+                      <AlertTriangle size={16} className="text-slate-400" />
+                    </div>
+                    <div className="flex flex-col gap-1">
+                      <div className="flex justify-between items-end border-l-2 border-black dark:border-white pl-2">
+                        <span className="text-[10px] text-slate-900 dark:text-white font-medium">Alpha</span>
+                        <span className={`text-lg font-black ${alpha >= 0 ? "text-green-600" : "text-red-600"}`}>{`${(alpha * 100).toFixed(2)}%`}</span>
+                      </div>
+                      <div className="flex justify-between items-end border-l-2 border-slate-400 pl-2">
+                        <span className="text-[10px] text-slate-500 font-medium">Portfolio MDD</span>
+                        <span className="text-lg font-black text-slate-900 dark:text-white">{`${(currentSummary.maxDrawdown * 100).toFixed(2)}%`}</span>
+                      </div>
+                    </div>
+                  </div>
                 </div>
 
                 <div className="min-h-[400px] w-full rounded-2xl border border-slate-200 bg-white p-4 md:p-6 shadow-sm dark:border-slate-800 dark:bg-slate-900">
