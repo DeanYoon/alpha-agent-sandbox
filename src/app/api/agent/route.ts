@@ -1,4 +1,5 @@
 import { NextResponse } from 'next/server';
+import { supabase } from '@/lib/supabase';
 
 export async function POST(req: Request) {
   try {
@@ -9,6 +10,7 @@ export async function POST(req: Request) {
       return NextResponse.json({ error: 'API Key not configured' }, { status: 500 });
     }
 
+    // 1. Get Answer from OpenRouter
     const response = await fetch('https://openrouter.ai/api/v1/chat/completions', {
       method: 'POST',
       headers: {
@@ -28,16 +30,42 @@ export async function POST(req: Request) {
     });
 
     const data = await response.json();
+    if (data.error) throw new Error(data.error.message || 'OpenRouter Error');
     
-    if (data.error) {
-       throw new Error(data.error.message || 'OpenRouter Error');
+    const answer = data.choices[0].message.content;
+
+    // 2. Save both User Message and Assistant Answer to Supabase
+    // Note: In a real app, you would use a user session ID here. 
+    // For now, we use a generic 'default_user' or leave it to be extended.
+    const { error: dbError } = await supabase
+      .from('chat_history')
+      .insert([
+        { role: 'user', content: message },
+        { role: 'assistant', content: answer }
+      ]);
+
+    if (dbError) {
+      console.error('Supabase Save Error (ignoring):', dbError);
     }
 
-    return NextResponse.json({ 
-      answer: data.choices[0].message.content 
-    });
+    return NextResponse.json({ answer });
   } catch (error: any) {
     console.error('Agent API Error:', error);
+    return NextResponse.json({ error: error.message }, { status: 500 });
+  }
+}
+
+// Add GET method to fetch history
+export async function GET() {
+  try {
+    const { data, error } = await supabase
+      .from('chat_history')
+      .select('*')
+      .order('created_at', { ascending: true });
+
+    if (error) throw error;
+    return NextResponse.json({ history: data });
+  } catch (error: any) {
     return NextResponse.json({ error: error.message }, { status: 500 });
   }
 }

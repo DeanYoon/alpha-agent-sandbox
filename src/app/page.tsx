@@ -34,6 +34,13 @@ export default function BacktestPage() {
 
   useEffect(() => {
     setIsClient(true);
+    // Fetch chat history from Supabase on mount
+    fetch('/api/agent')
+      .then(res => res.json())
+      .then(data => {
+        if (data.history) setChatHistory(data.history.map((h: any) => ({ role: h.role, content: h.content })));
+      })
+      .catch(console.error);
   }, []);
 
   useEffect(() => {
@@ -176,8 +183,7 @@ export default function BacktestPage() {
   const sendChatMessage = async () => {
     if (!chatMessage.trim() || isChatLoading) return;
     const userMsg: Message = { role: 'user', content: chatMessage };
-    const newHistory = [...chatHistory, userMsg];
-    setChatHistory(newHistory);
+    setChatHistory(prev => [...prev, userMsg]);
     setChatMessage('');
     setIsChatLoading(true);
     try {
@@ -187,7 +193,7 @@ export default function BacktestPage() {
         body: JSON.stringify({ message: chatMessage, history: chatHistory }),
       });
       const data = await response.json();
-      if (data.answer) setChatHistory([...newHistory, { role: 'assistant', content: data.answer }]);
+      if (data.answer) setChatHistory(prev => [...prev, { role: 'assistant', content: data.answer }]);
     } catch (e) { console.error(e); } finally { setIsChatLoading(false); }
   };
 
