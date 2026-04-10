@@ -51,6 +51,21 @@ export default function BacktestPage() {
   const currentSummary = result?.summary || initialSummary;
   const alpha = currentSummary.totalReturn - (currentSummary.benchmarkReturn || 0);
   const historyData = result?.history || [];
+  const [brushRange, setBrushRange] = useState({ startIndex: 0, endIndex: 0 });
+
+  useEffect(() => {
+    if (historyData.length > 0) {
+      setBrushRange({ startIndex: 0, endIndex: historyData.length - 1 });
+    } else {
+      setBrushRange({ startIndex: 0, endIndex: 0 });
+    }
+  }, [historyData]);
+
+  const handleBrushChange = (range: any) => {
+    if (range && typeof range.startIndex === 'number' && typeof range.endIndex === 'number') {
+      setBrushRange({ startIndex: range.startIndex, endIndex: range.endIndex });
+    }
+  };
 
   useEffect(() => {
     if (darkMode) {
@@ -348,6 +363,7 @@ export default function BacktestPage() {
                       fill={darkMode ? "#0f172a" : "#f8fafc"}
                       tickFormatter={() => ""}
                       travellerWidth={20}
+                      onChange={handleBrushChange}
                     >
                       <LineChart>
                         <Line 
@@ -358,39 +374,30 @@ export default function BacktestPage() {
                         />
                       </LineChart>
                     </Brush>
-                    {/* Custom Bottom Date Labels */}
-                    {historyData.length > 0 && (
-                      <g className="custom-brush-labels">
-                        <path d={`M 0,350 L ${350},350`} stroke="none" />
-                        <text
-                          x="0%"
-                          y="98%"
-                          textAnchor="start"
-                          fill={darkMode ? "#94a3b8" : "#64748b"}
-                          style={{ fontSize: '10px', fontWeight: 'bold' }}
-                        >
-                          {(() => {
-                            const d = new Date(historyData[0].date);
-                            return isNaN(d.getTime()) ? historyData[0].date : d.toISOString().split('T')[0];
-                          })()}
-                        </text>
-                        <text
-                          x="100%"
-                          y="98%"
-                          textAnchor="end"
-                          fill={darkMode ? "#94a3b8" : "#64748b"}
-                          style={{ fontSize: '10px', fontWeight: 'bold' }}
-                        >
-                          {(() => {
-                            const d = new Date(historyData[historyData.length - 1].date);
-                            return isNaN(d.getTime()) ? historyData[historyData.length - 1].date : d.toISOString().split('T')[0];
-                          })()}
-                        </text>
-                      </g>
-                    )}
                   </LineChart>
                   </ResponsiveContainer>
                   </div>
+                  {/* Custom Bottom Date Labels as a non-SVG container */}
+                  {historyData.length > 0 && (
+                    <div className="mt-2 flex justify-between px-2 text-[11px] font-bold text-slate-500 dark:text-slate-400">
+                      <div className="bg-slate-100 dark:bg-slate-800 px-2 py-1 rounded border border-blue-500/30">
+                        {(() => {
+                          const item = historyData[brushRange.startIndex];
+                          if (!item) return "";
+                          const d = new Date(item.date);
+                          return isNaN(d.getTime()) ? item.date : d.toISOString().split('T')[0];
+                        })()}
+                      </div>
+                      <div className="bg-slate-100 dark:bg-slate-800 px-2 py-1 rounded border border-blue-500/30">
+                        {(() => {
+                          const item = historyData[brushRange.endIndex];
+                          if (!item) return "";
+                          const d = new Date(item.date);
+                          return isNaN(d.getTime()) ? item.date : d.toISOString().split('T')[0];
+                        })()}
+                      </div>
+                    </div>
+                  )}
                 </div>
           </div>
         </div>
