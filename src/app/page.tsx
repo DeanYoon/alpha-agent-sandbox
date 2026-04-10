@@ -345,9 +345,8 @@ export default function BacktestPage() {
                           type="monotone" 
                           dataKey="benchmarkBalance" 
                           stroke="#dc2626" 
-                          strokeWidth={2} 
+                          strokeWidth={2.5} 
                           dot={false} 
-                          strokeDasharray="5 5"
                         />
                       )}
                     </LineChart>
