@@ -6,9 +6,8 @@ export async function POST(req: Request) {
     const { message, history } = await req.json();
     const apiKey = process.env.OPENROUTER_API_KEY;
 
-    if (!apiKey) {
-      return NextResponse.json({ error: 'API Key not configured' }, { status: 500 });
-    }
+    if (!apiKey) return NextResponse.json({ error: 'API Key not configured' }, { status: 500 });
+    if (!supabase) return NextResponse.json({ error: 'Supabase not configured' }, { status: 500 });
 
     // 1. Get Answer from OpenRouter
     const response = await fetch('https://openrouter.ai/api/v1/chat/completions', {
@@ -58,6 +57,7 @@ export async function POST(req: Request) {
 // Add GET method to fetch history
 export async function GET() {
   try {
+    if (!supabase) return NextResponse.json({ history: [] });
     const { data, error } = await supabase
       .from('chat_history')
       .select('*')
