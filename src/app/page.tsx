@@ -47,6 +47,7 @@ export default function BacktestPage() {
   const [darkMode, setDarkMode] = useState(true);
 
   const [rebalanceInterval, setRebalanceInterval] = useState<'none' | 'monthly' | 'quarterly' | 'yearly'>('monthly');
+  const [rebalanceTriggerPercent, setRebalanceTriggerPercent] = useState<number>(0);
 
   const initialSummary = {
     finalBalance: 100000,
@@ -144,6 +145,7 @@ export default function BacktestPage() {
           tickers: tickerList,
           allocations: weightList,
           rebalanceInterval: rebalanceInterval,
+          rebalanceTriggerPercent: rebalanceTriggerPercent > 0 ? rebalanceTriggerPercent : undefined,
           seedMoney: 100000,
           benchmarkTicker,
           period: apiPeriod
@@ -236,6 +238,21 @@ export default function BacktestPage() {
                   <option value="quarterly">Quarterly</option>
                   <option value="yearly">Yearly</option>
                 </select>
+              </div>
+
+              <div>
+                <label className="mb-1 block text-[10px] md:text-xs font-medium uppercase text-slate-500 dark:text-slate-400">Market Drop Rebalance Trigger (%)</label>
+                <input 
+                  type="number" 
+                  min="0"
+                  max="50"
+                  step="0.5"
+                  className="w-full rounded-lg border border-slate-200 bg-white px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-black dark:border-slate-700 dark:bg-slate-800 dark:focus:ring-blue-500"
+                  value={rebalanceTriggerPercent || ''}
+                  placeholder="0 (Disabled)"
+                  onChange={(e) => setRebalanceTriggerPercent(parseFloat(e.target.value) || 0)}
+                />
+                <p className="mt-1 text-[9px] text-slate-400">Rebalance if benchmark drops X% from high.</p>
               </div>
 
               <div>

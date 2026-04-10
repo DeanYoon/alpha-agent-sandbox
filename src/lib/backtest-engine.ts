@@ -12,7 +12,7 @@ import { BacktestRequest, BacktestResult, PriceData } from '@/types/backtest';
  */
 
 export async function runBacktestSimulation(config: BacktestRequest): Promise<BacktestResult> {
-  const { tickers, allocations, rebalanceInterval, seedMoney, benchmarkTicker, period } = config;
+  const { tickers, allocations, rebalanceInterval, rebalanceTriggerPercent, seedMoney, benchmarkTicker, period } = config;
 
   // Placeholder: In a real app, you'd call an external API or your internal price service.
   // For this sandbox, let's simulate fetching data.
@@ -46,6 +46,9 @@ export async function runBacktestSimulation(config: BacktestRequest): Promise<Ba
   let maxBenchmarkBalance = seedMoney;
   let benchmarkMaxDrawdown = 0;
 
+  // Market Drop Tracker for Benchmark
+  let benchmarkHigh = seedMoney;
+
   for (let d = 0; d < dates.length; d++) {
     const date = dates[d];
     let totalValue = 0;
@@ -71,11 +74,18 @@ export async function runBacktestSimulation(config: BacktestRequest): Promise<Ba
     const currentDrawdown = (maxBalance - totalValue) / maxBalance;
     if (currentDrawdown > maxDrawdown) maxDrawdown = currentDrawdown;
 
-    // Benchmark Drawdown Calculation
+    // Benchmark Drawdown Calculation & Market High Tracker
+    let marketDrawdownPercent = 0;
     if (benchmarkTicker && dayEntry.benchmarkBalance) {
       if (dayEntry.benchmarkBalance > maxBenchmarkBalance) maxBenchmarkBalance = dayEntry.benchmarkBalance;
       const currentBenchmarkDrawdown = (maxBenchmarkBalance - dayEntry.benchmarkBalance) / maxBenchmarkBalance;
       if (currentBenchmarkDrawdown > benchmarkMaxDrawdown) benchmarkMaxDrawdown = currentBenchmarkDrawdown;
+
+      // Track benchmark high for rebalance trigger
+      if (dayEntry.benchmarkBalance > benchmarkHigh) {
+        benchmarkHigh = dayEntry.benchmarkBalance;
+      }
+      marketDrawdownPercent = ((benchmarkHigh - dayEntry.benchmarkBalance) / benchmarkHigh) * 100;
     }
 
     // Rebalancing logic
@@ -85,6 +95,7 @@ export async function runBacktestSimulation(config: BacktestRequest): Promise<Ba
       const nextDate = new Date(nextDateStr);
       let shouldRebalance = false;
 
+      // 1. Time-based rebalancing
       if (rebalanceInterval === 'monthly') {
         shouldRebalance = nextDate.getMonth() !== currentDate.getMonth();
       } else if (rebalanceInterval === 'yearly') {
@@ -93,6 +104,11 @@ export async function runBacktestSimulation(config: BacktestRequest): Promise<Ba
         const currentQuarter = Math.floor(currentDate.getMonth() / 3);
         const nextQuarter = Math.floor(nextDate.getMonth() / 3);
         shouldRebalance = currentQuarter !== nextQuarter;
+      }
+
+      // 2. Condition-based rebalancing: Market Drop Trigger
+      if (rebalanceTriggerPercent && marketDrawdownPercent >= rebalanceTriggerPercent) {
+        shouldRebalance = true;
       }
 
       if (shouldRebalance) {

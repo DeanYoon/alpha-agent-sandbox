@@ -4,6 +4,7 @@ export interface BacktestRequest {
   startDate: string;
   endDate: string;
   rebalanceInterval: 'monthly' | 'quarterly' | 'yearly' | 'none';
+  rebalanceTriggerPercent?: number; // Market Drop Trigger (%)
   seedMoney: number;
   benchmarkTicker?: string;
   period?: string;
