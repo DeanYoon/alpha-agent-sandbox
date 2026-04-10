@@ -20,6 +20,12 @@ interface Asset {
 }
 
 export default function BacktestPage() {
+  const [isClient, setIsClient] = useState(false);
+
+  useEffect(() => {
+    setIsClient(true);
+  }, []);
+
   const [assets, setAssets] = useState<Asset[]>([
     { ticker: 'AAPL', weight: 40 },
     { ticker: 'MSFT', weight: 40 },
@@ -345,74 +351,76 @@ export default function BacktestPage() {
 
                 <div className="min-h-[400px] w-full rounded-2xl border border-slate-200 bg-white p-4 md:p-6 shadow-sm dark:border-slate-800 dark:bg-slate-900">
                   <h3 className="mb-4 text-[10px] md:text-sm font-medium text-slate-500 uppercase dark:text-slate-400">Growth of Portfolio ($100,000)</h3>
+                  {isClient && (
                     <div className="h-[400px] md:h-[450px] w-full -ml-4 md:ml-0">
-                  <ResponsiveContainer width="100%" height="100%">
-                    <LineChart data={historyData} margin={{ top: 5, right: 20, left: 0, bottom: 40 }}>
-                      <CartesianGrid strokeDasharray="3 3" vertical={false} stroke={darkMode ? "#334155" : "#f1f5f9"} />
-                      <XAxis 
-                        dataKey="date" 
-                        hide={true}
-                      />
-                      <YAxis 
-                        tick={{fontSize: 10, fill: darkMode ? '#94a3b8' : '#64748b'}} 
-                        axisLine={false}
-                        tickLine={false}
-                        tickFormatter={(val) => `$${Math.round(val/1000)}k`}
-                        domain={['auto', 'auto']}
-                      />
-                      <Tooltip 
-                        labelClassName="text-slate-900 dark:text-slate-100 font-bold"
-                        formatter={(val: any) => [`$${Math.round(val).toLocaleString()}`, "Balance"]}
-                        contentStyle={{
-                          borderRadius: '12px', 
-                          border: 'none', 
-                          boxShadow: '0 10px 15px -3px rgb(0 0 0 / 0.1)',
-                          backgroundColor: darkMode ? '#1e293b' : '#ffffff',
-                          color: darkMode ? '#f1f5f9' : '#0f172a',
-                          fontSize: '12px'
-                        }}
-                      />
-                      <Legend verticalAlign="top" height={36} wrapperStyle={{ fontSize: '12px' }}/>
-                      <Line 
-                        name="Portfolio"
-                        type="monotone" 
-                        dataKey="balance" 
-                        stroke={darkMode ? "#3b82f6" : "#000000"} 
-                        strokeWidth={2.5} 
-                        dot={false} 
-                        activeDot={{ r: 4, strokeWidth: 0, fill: darkMode ? "#3b82f6" : "#000000" }}
-                      />
-                      {historyData[0]?.benchmarkBalance && (
-                      <Line 
-                        name={`Benchmark (${benchmarkTicker})`}
-                        type="monotone" 
-                        dataKey="benchmarkBalance" 
-                        stroke="#dc2626" 
-                        strokeWidth={2.5} 
-                        dot={false} 
-                      />
-                    )}
-                    <Brush 
-                      dataKey="date" 
-                      height={30} 
-                      stroke={darkMode ? "#475569" : "#64748b"}
-                      fill={darkMode ? "#0f172a" : "#f8fafc"}
-                      tickFormatter={() => ""}
-                      travellerWidth={20}
-                      onChange={handleBrushChange}
-                    >
-                      <LineChart>
-                        <Line 
-                          dataKey="balance" 
-                          stroke={darkMode ? "#3b82f6" : "#000000"} 
-                          strokeWidth={1} 
-                          dot={false} 
-                        />
+                      <ResponsiveContainer width="100%" height="100%">
+                        <LineChart data={historyData} margin={{ top: 5, right: 20, left: 0, bottom: 40 }}>
+                          <CartesianGrid strokeDasharray="3 3" vertical={false} stroke={darkMode ? "#334155" : "#f1f5f9"} />
+                          <XAxis 
+                            dataKey="date" 
+                            hide={true}
+                          />
+                          <YAxis 
+                            tick={{fontSize: 10, fill: darkMode ? '#94a3b8' : '#64748b'}} 
+                            axisLine={false}
+                            tickLine={false}
+                            tickFormatter={(val) => `$${Math.round(val/1000)}k`}
+                            domain={['auto', 'auto']}
+                          />
+                          <Tooltip 
+                            labelClassName="text-slate-900 dark:text-slate-100 font-bold"
+                            formatter={(val: any) => [`$${Math.round(val).toLocaleString()}`, "Balance"]}
+                            contentStyle={{
+                              borderRadius: '12px', 
+                              border: 'none', 
+                              boxShadow: '0 10px 15px -3px rgb(0 0 0 / 0.1)',
+                              backgroundColor: darkMode ? '#1e293b' : '#ffffff',
+                              color: darkMode ? '#f1f5f9' : '#0f172a',
+                              fontSize: '12px'
+                            }}
+                          />
+                          <Legend verticalAlign="top" height={36} wrapperStyle={{ fontSize: '12px' }}/>
+                          <Line 
+                            name="Portfolio"
+                            type="monotone" 
+                            dataKey="balance" 
+                            stroke={darkMode ? "#3b82f6" : "#000000"} 
+                            strokeWidth={2.5} 
+                            dot={false} 
+                            activeDot={{ r: 4, strokeWidth: 0, fill: darkMode ? "#3b82f6" : "#000000" }}
+                          />
+                          {historyData[0]?.benchmarkBalance && (
+                          <Line 
+                            name={`Benchmark (${benchmarkTicker})`}
+                            type="monotone" 
+                            dataKey="benchmarkBalance" 
+                            stroke="#dc2626" 
+                            strokeWidth={2.5} 
+                            dot={false} 
+                          />
+                        )}
+                        <Brush 
+                          dataKey="date" 
+                          height={30} 
+                          stroke={darkMode ? "#475569" : "#64748b"}
+                          fill={darkMode ? "#0f172a" : "#f8fafc"}
+                          tickFormatter={() => ""}
+                          travellerWidth={20}
+                          onChange={handleBrushChange}
+                        >
+                          <LineChart>
+                            <Line 
+                              dataKey="balance" 
+                              stroke={darkMode ? "#3b82f6" : "#000000"} 
+                              strokeWidth={1} 
+                              dot={false} 
+                            />
+                          </LineChart>
+                        </Brush>
                       </LineChart>
-                    </Brush>
-                  </LineChart>
-                  </ResponsiveContainer>
+                    </ResponsiveContainer>
                   </div>
+                  )}
                   {/* Custom Bottom Date Labels as a non-SVG container */}
                   {historyData.length > 0 && (
                     <div className="mt-2 flex justify-between px-2 text-[11px] font-bold text-slate-500 dark:text-slate-400">
