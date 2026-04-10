@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { 
   LineChart, 
   Line, 
@@ -51,20 +51,29 @@ export default function BacktestPage() {
   const currentSummary = result?.summary || initialSummary;
   const alpha = currentSummary.totalReturn - (currentSummary.benchmarkReturn || 0);
   const historyData = result?.history || [];
-  const [brushRange, setBrushRange] = useState({ startIndex: 0, endIndex: 0 });
+  const startRef = useRef<HTMLDivElement>(null);
+  const endRef = useRef<HTMLDivElement>(null);
+
+  const formatDate = (dateStr: string) => {
+    if (!dateStr) return "";
+    const d = new Date(dateStr);
+    return isNaN(d.getTime()) ? dateStr : d.toISOString().split('T')[0];
+  };
 
   useEffect(() => {
     if (historyData.length > 0) {
-      setBrushRange({ startIndex: 0, endIndex: historyData.length - 1 });
-    } else {
-      setBrushRange({ startIndex: 0, endIndex: 0 });
+      if (startRef.current) startRef.current.innerText = formatDate(historyData[0].date);
+      if (endRef.current) endRef.current.innerText = formatDate(historyData[historyData.length - 1].date);
     }
   }, [historyData]);
 
   const handleBrushChange = (range: any) => {
     if (range && typeof range.startIndex === 'number' && typeof range.endIndex === 'number') {
-      if (range.startIndex !== brushRange.startIndex || range.endIndex !== brushRange.endIndex) {
-        setBrushRange({ startIndex: range.startIndex, endIndex: range.endIndex });
+      if (historyData[range.startIndex] && startRef.current) {
+        startRef.current.innerText = formatDate(historyData[range.startIndex].date);
+      }
+      if (historyData[range.endIndex] && endRef.current) {
+        endRef.current.innerText = formatDate(historyData[range.endIndex].date);
       }
     }
   };
@@ -382,21 +391,11 @@ export default function BacktestPage() {
                   {/* Custom Bottom Date Labels as a non-SVG container */}
                   {historyData.length > 0 && (
                     <div className="mt-2 flex justify-between px-2 text-[11px] font-bold text-slate-500 dark:text-slate-400">
-                      <div className="bg-slate-100 dark:bg-slate-800 px-2 py-1 rounded border border-blue-500/30">
-                        {(() => {
-                          const item = historyData[brushRange.startIndex];
-                          if (!item) return "";
-                          const d = new Date(item.date);
-                          return isNaN(d.getTime()) ? item.date : d.toISOString().split('T')[0];
-                        })()}
+                      <div ref={startRef} className="bg-slate-100 dark:bg-slate-800 px-2 py-1 rounded border border-blue-500/30">
+                        {formatDate(historyData[0]?.date)}
                       </div>
-                      <div className="bg-slate-100 dark:bg-slate-800 px-2 py-1 rounded border border-blue-500/30">
-                        {(() => {
-                          const item = historyData[brushRange.endIndex];
-                          if (!item) return "";
-                          const d = new Date(item.date);
-                          return isNaN(d.getTime()) ? item.date : d.toISOString().split('T')[0];
-                        })()}
+                      <div ref={endRef} className="bg-slate-100 dark:bg-slate-800 px-2 py-1 rounded border border-blue-500/30">
+                        {formatDate(historyData[historyData.length - 1]?.date)}
                       </div>
                     </div>
                   )}
