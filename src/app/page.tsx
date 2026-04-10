@@ -50,7 +50,11 @@ export default function BacktestPage() {
   };
 
   const currentSummary = result?.summary || initialSummary;
-  const alpha = currentSummary.totalReturn - (currentSummary.benchmarkReturn || 0);
+  // Relative Performance (Alpha) calculation: ((1 + portfolioReturn) / (1 + benchmarkReturn)) - 1
+  const alphaPercent = currentSummary.benchmarkReturn !== undefined 
+    ? ((1 + currentSummary.totalReturn) / (1 + currentSummary.benchmarkReturn)) - 1
+    : 0;
+
   const historyData = result?.history || [];
   const startRef = useRef<HTMLDivElement>(null);
   const endRef = useRef<HTMLDivElement>(null);
@@ -308,8 +312,8 @@ export default function BacktestPage() {
                     </div>
                     <div className="flex flex-col gap-1">
                       <div className="flex justify-between items-end border-l-2 border-black dark:border-white pl-2">
-                        <span className="text-[10px] text-slate-900 dark:text-white font-medium">Alpha</span>
-                        <span className={`text-lg font-black ${alpha >= 0 ? "text-green-600" : "text-red-600"}`}>{`${(alpha * 100).toFixed(2)}%`}</span>
+                        <span className="text-[10px] text-slate-900 dark:text-white font-medium">Relative Performance vs {benchmarkTicker}</span>
+                        <span className={`text-lg font-black ${alphaPercent >= 0 ? "text-green-600" : "text-red-600"}`}>{`${(alphaPercent * 100).toFixed(2)}%`}</span>
                       </div>
                       <div className="flex justify-between items-end border-l-2 border-blue-500 pl-2">
                         <span className="text-[10px] text-blue-600 font-medium">Portfolio MDD</span>
