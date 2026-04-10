@@ -362,7 +362,7 @@ export default function BacktestPage() {
                         return isNaN(d.getTime()) ? date : d.toISOString().split('T')[0];
                       }}
                       travellerWidth={10}
-                      padding={{ top: 0, bottom: 0 }}
+                      padding={{ top: 0, bottom: 0, left: 0, right: 0 }}
                     >
                       <LineChart>
                         <Line 
