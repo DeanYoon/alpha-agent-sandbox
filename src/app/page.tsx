@@ -9,7 +9,8 @@ import {
   CartesianGrid, 
   Tooltip, 
   ResponsiveContainer,
-  Legend
+  Legend,
+  Brush
 } from 'recharts';
 import { Play, TrendingUp, AlertTriangle, Wallet, Plus, Trash2, Moon, Sun } from 'lucide-react';
 
@@ -316,6 +317,7 @@ export default function BacktestPage() {
                         axisLine={false}
                         tickLine={false}
                         tickFormatter={(val) => `$${Math.round(val/1000)}k`}
+                        domain={['auto', 'auto']}
                       />
                       <Tooltip 
                         labelClassName="text-slate-900 dark:text-slate-100 font-bold"
@@ -340,16 +342,24 @@ export default function BacktestPage() {
                         activeDot={{ r: 4, strokeWidth: 0, fill: darkMode ? "#3b82f6" : "#000000" }}
                       />
                       {historyData[0]?.benchmarkBalance && (
-                        <Line 
-                          name={`Benchmark (${benchmarkTicker})`}
-                          type="monotone" 
-                          dataKey="benchmarkBalance" 
-                          stroke="#dc2626" 
-                          strokeWidth={2.5} 
-                          dot={false} 
-                        />
-                      )}
-                    </LineChart>
+                      <Line 
+                        name={`Benchmark (${benchmarkTicker})`}
+                        type="monotone" 
+                        dataKey="benchmarkBalance" 
+                        stroke="#dc2626" 
+                        strokeWidth={2.5} 
+                        dot={false} 
+                      />
+                    )}
+                    <Brush 
+                      dataKey="date" 
+                      height={30} 
+                      stroke={darkMode ? "#334155" : "#e2e8f0"}
+                      fill={darkMode ? "#0f172a" : "#f8fafc"}
+                      tickFormatter={() => ""}
+                      style={{ fontSize: '10px' }}
+                    />
+                  </LineChart>
                   </ResponsiveContainer>
                   </div>
                 </div>
