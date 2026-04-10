@@ -354,11 +354,25 @@ export default function BacktestPage() {
                     <Brush 
                       dataKey="date" 
                       height={30} 
-                      stroke={darkMode ? "#334155" : "#e2e8f0"}
+                      stroke={darkMode ? "#475569" : "#64748b"}
                       fill={darkMode ? "#0f172a" : "#f8fafc"}
-                      tickFormatter={() => ""}
-                      style={{ fontSize: '10px' }}
-                    />
+                      tickFormatter={(date) => {
+                        if (!date) return "";
+                        const d = new Date(date);
+                        return isNaN(d.getTime()) ? date : d.toISOString().split('T')[0];
+                      }}
+                      travellerWidth={10}
+                      padding={{ top: 0, bottom: 0 }}
+                    >
+                      <LineChart>
+                        <Line 
+                          dataKey="balance" 
+                          stroke={darkMode ? "#3b82f6" : "#000000"} 
+                          strokeWidth={1} 
+                          dot={false} 
+                        />
+                      </LineChart>
+                    </Brush>
                   </LineChart>
                   </ResponsiveContainer>
                   </div>
