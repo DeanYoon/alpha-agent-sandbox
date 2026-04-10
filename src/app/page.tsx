@@ -45,6 +45,7 @@ export default function BacktestPage() {
     totalReturn: 0,
     maxDrawdown: 0,
     benchmarkReturn: 0,
+    benchmarkMaxDrawdown: 0,
     benchmarkFinalBalance: 100000,
   };
 
@@ -310,9 +311,13 @@ export default function BacktestPage() {
                         <span className="text-[10px] text-slate-900 dark:text-white font-medium">Alpha</span>
                         <span className={`text-lg font-black ${alpha >= 0 ? "text-green-600" : "text-red-600"}`}>{`${(alpha * 100).toFixed(2)}%`}</span>
                       </div>
-                      <div className="flex justify-between items-end border-l-2 border-slate-400 pl-2">
-                        <span className="text-[10px] text-slate-500 font-medium">Portfolio MDD</span>
-                        <span className="text-lg font-black text-slate-900 dark:text-white">{`${(currentSummary.maxDrawdown * 100).toFixed(2)}%`}</span>
+                      <div className="flex justify-between items-end border-l-2 border-blue-500 pl-2">
+                        <span className="text-[10px] text-blue-600 font-medium">Portfolio MDD</span>
+                        <span className="text-lg font-black text-blue-600">{`${(currentSummary.maxDrawdown * 100).toFixed(2)}%`}</span>
+                      </div>
+                      <div className="flex justify-between items-end border-l-2 border-red-500 pl-2">
+                        <span className="text-[10px] text-red-600 font-medium">{benchmarkTicker} MDD</span>
+                        <span className="text-lg font-black text-red-600">{`${(currentSummary.benchmarkMaxDrawdown * 100).toFixed(2)}%`}</span>
                       </div>
                     </div>
                   </div>

@@ -43,6 +43,8 @@ export async function runBacktestSimulation(config: BacktestRequest): Promise<Ba
   const history: { date: string, balance: number, benchmarkBalance?: number }[] = [];
   let maxBalance = seedMoney;
   let maxDrawdown = 0;
+  let maxBenchmarkBalance = seedMoney;
+  let benchmarkMaxDrawdown = 0;
 
   for (let d = 0; d < dates.length; d++) {
     const date = dates[d];
@@ -68,6 +70,13 @@ export async function runBacktestSimulation(config: BacktestRequest): Promise<Ba
     if (totalValue > maxBalance) maxBalance = totalValue;
     const currentDrawdown = (maxBalance - totalValue) / maxBalance;
     if (currentDrawdown > maxDrawdown) maxDrawdown = currentDrawdown;
+
+    // Benchmark Drawdown Calculation
+    if (benchmarkTicker && dayEntry.benchmarkBalance) {
+      if (dayEntry.benchmarkBalance > maxBenchmarkBalance) maxBenchmarkBalance = dayEntry.benchmarkBalance;
+      const currentBenchmarkDrawdown = (maxBenchmarkBalance - dayEntry.benchmarkBalance) / maxBenchmarkBalance;
+      if (currentBenchmarkDrawdown > benchmarkMaxDrawdown) benchmarkMaxDrawdown = currentBenchmarkDrawdown;
+    }
 
     // Rebalancing logic (Simplified: Monthly rebalancing on the first trading day of the month)
     const currentDate = new Date(date);
@@ -99,6 +108,7 @@ export async function runBacktestSimulation(config: BacktestRequest): Promise<Ba
       sharpeRatio: 0, // Placeholder
       benchmarkReturn,
       benchmarkFinalBalance,
+      benchmarkMaxDrawdown,
     },
     history,
   };
