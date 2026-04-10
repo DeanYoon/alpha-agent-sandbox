@@ -38,7 +38,9 @@ export default function BacktestPage() {
   const [loading, setLoading] = useState(false);
   const [result, setResult] = useState<any>(null);
   const [error, setError] = useState<string | null>(null);
-  const [darkMode, setDarkMode] = useState(false);
+  const [darkMode, setDarkMode] = useState(true);
+
+  const [rebalanceInterval, setRebalanceInterval] = useState<'none' | 'monthly' | 'quarterly' | 'yearly'>('monthly');
 
   const initialSummary = {
     finalBalance: 100000,
@@ -132,10 +134,10 @@ export default function BacktestPage() {
       const response = await fetch('/api/backtest', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
+          body: JSON.stringify({
           tickers: tickerList,
           allocations: weightList,
-          rebalanceInterval: 'monthly',
+          rebalanceInterval: rebalanceInterval,
           seedMoney: 100000,
           benchmarkTicker,
           period: apiPeriod
@@ -214,6 +216,20 @@ export default function BacktestPage() {
                     <Plus size={14} /> Add Asset
                   </button>
                 </div>
+              </div>
+
+              <div>
+                <label className="mb-1 block text-[10px] md:text-xs font-medium uppercase text-slate-500 dark:text-slate-400">Rebalance Interval</label>
+                <select 
+                  className="w-full rounded-lg border border-slate-200 bg-white px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-black dark:border-slate-700 dark:bg-slate-800 dark:focus:ring-blue-500"
+                  value={rebalanceInterval}
+                  onChange={(e: any) => setRebalanceInterval(e.target.value)}
+                >
+                  <option value="none">None</option>
+                  <option value="monthly">Monthly</option>
+                  <option value="quarterly">Quarterly</option>
+                  <option value="yearly">Yearly</option>
+                </select>
               </div>
 
               <div>

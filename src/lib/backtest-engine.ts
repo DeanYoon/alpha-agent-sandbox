@@ -78,13 +78,25 @@ export async function runBacktestSimulation(config: BacktestRequest): Promise<Ba
       if (currentBenchmarkDrawdown > benchmarkMaxDrawdown) benchmarkMaxDrawdown = currentBenchmarkDrawdown;
     }
 
-    // Rebalancing logic (Simplified: Monthly rebalancing on the first trading day of the month)
+    // Rebalancing logic
     const currentDate = new Date(date);
     const nextDateStr = dates[d + 1];
-    if (nextDateStr && rebalanceInterval === 'monthly') {
+    if (nextDateStr) {
       const nextDate = new Date(nextDateStr);
-      if (nextDate.getMonth() !== currentDate.getMonth()) {
-        // Rebalance
+      let shouldRebalance = false;
+
+      if (rebalanceInterval === 'monthly') {
+        shouldRebalance = nextDate.getMonth() !== currentDate.getMonth();
+      } else if (rebalanceInterval === 'yearly') {
+        shouldRebalance = nextDate.getFullYear() !== currentDate.getFullYear();
+      } else if (rebalanceInterval === 'quarterly') {
+        const currentQuarter = Math.floor(currentDate.getMonth() / 3);
+        const nextQuarter = Math.floor(nextDate.getMonth() / 3);
+        shouldRebalance = currentQuarter !== nextQuarter;
+      }
+
+      if (shouldRebalance) {
+        // Rebalance to target allocations using the total value at the end of the day
         shares = tickers.map((ticker, i) => (totalValue * allocations[i]) / prices[ticker][d].price);
       }
     }
