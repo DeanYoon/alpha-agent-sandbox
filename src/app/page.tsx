@@ -294,23 +294,13 @@ export default function BacktestPage() {
 
                 <div className="min-h-[400px] w-full rounded-2xl border border-slate-200 bg-white p-4 md:p-6 shadow-sm dark:border-slate-800 dark:bg-slate-900">
                   <h3 className="mb-4 text-[10px] md:text-sm font-medium text-slate-500 uppercase dark:text-slate-400">Growth of Portfolio ($100,000)</h3>
-                  <div className="h-[300px] md:h-[350px] w-full -ml-4 md:ml-0">
+                    <div className="h-[400px] md:h-[450px] w-full -ml-4 md:ml-0">
                   <ResponsiveContainer width="100%" height="100%">
-                    <LineChart data={historyData} margin={{ top: 5, right: 20, left: 0, bottom: 5 }}>
+                    <LineChart data={historyData} margin={{ top: 5, right: 20, left: 0, bottom: 40 }}>
                       <CartesianGrid strokeDasharray="3 3" vertical={false} stroke={darkMode ? "#334155" : "#f1f5f9"} />
                       <XAxis 
                         dataKey="date" 
-                        tick={{fontSize: 10, fill: darkMode ? '#94a3b8' : '#64748b'}}
-                        tickFormatter={(str) => {
-                          const date = new Date(str);
-                          if (date.getMonth() === 0 && date.getDate() <= 7) {
-                            return date.getFullYear().toString();
-                          }
-                          return "";
-                        }}
-                        interval={0}
-                        axisLine={false}
-                        tickLine={false}
+                        hide={true}
                       />
                       <YAxis 
                         tick={{fontSize: 10, fill: darkMode ? '#94a3b8' : '#64748b'}} 
@@ -356,13 +346,8 @@ export default function BacktestPage() {
                       height={30} 
                       stroke={darkMode ? "#475569" : "#64748b"}
                       fill={darkMode ? "#0f172a" : "#f8fafc"}
-                      tickFormatter={(date) => {
-                        if (!date) return "";
-                        const d = new Date(date);
-                        return isNaN(d.getTime()) ? date : d.toISOString().split('T')[0];
-                      }}
-                      travellerWidth={10}
-                      padding={{ top: 0, bottom: 0, left: 0, right: 0 }}
+                      tickFormatter={() => ""}
+                      travellerWidth={20}
                     >
                       <LineChart>
                         <Line 
@@ -373,6 +358,36 @@ export default function BacktestPage() {
                         />
                       </LineChart>
                     </Brush>
+                    {/* Custom Bottom Date Labels */}
+                    {historyData.length > 0 && (
+                      <g className="custom-brush-labels">
+                        <path d={`M 0,350 L ${350},350`} stroke="none" />
+                        <text
+                          x="0%"
+                          y="98%"
+                          textAnchor="start"
+                          fill={darkMode ? "#94a3b8" : "#64748b"}
+                          style={{ fontSize: '10px', fontWeight: 'bold' }}
+                        >
+                          {(() => {
+                            const d = new Date(historyData[0].date);
+                            return isNaN(d.getTime()) ? historyData[0].date : d.toISOString().split('T')[0];
+                          })()}
+                        </text>
+                        <text
+                          x="100%"
+                          y="98%"
+                          textAnchor="end"
+                          fill={darkMode ? "#94a3b8" : "#64748b"}
+                          style={{ fontSize: '10px', fontWeight: 'bold' }}
+                        >
+                          {(() => {
+                            const d = new Date(historyData[historyData.length - 1].date);
+                            return isNaN(d.getTime()) ? historyData[historyData.length - 1].date : d.toISOString().split('T')[0];
+                          })()}
+                        </text>
+                      </g>
+                    )}
                   </LineChart>
                   </ResponsiveContainer>
                   </div>
