@@ -63,7 +63,9 @@ export default function BacktestPage() {
 
   const handleBrushChange = (range: any) => {
     if (range && typeof range.startIndex === 'number' && typeof range.endIndex === 'number') {
-      setBrushRange({ startIndex: range.startIndex, endIndex: range.endIndex });
+      if (range.startIndex !== brushRange.startIndex || range.endIndex !== brushRange.endIndex) {
+        setBrushRange({ startIndex: range.startIndex, endIndex: range.endIndex });
+      }
     }
   };
 
